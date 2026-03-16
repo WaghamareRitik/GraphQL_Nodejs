@@ -12,5 +12,13 @@ export async function initGraphQL(app: express.Application) {
 
   await server.start();
 
-  app.use("/graphql", express.json(), expressMiddleware(server));
+  app.use(
+    "/graphql",
+    express.json(),
+    expressMiddleware(server, {
+      context: async ({ req }) => {
+        return { req };
+      },
+    }),
+  );
 }

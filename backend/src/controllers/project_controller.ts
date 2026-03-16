@@ -1,23 +1,24 @@
-import { ProjectService } from "../services/project_service"
+import { ProjectService } from "../services/project_service";
+import { authMiddleware } from "../middleware/auth_middleware";
 
-export const ProjectController={
+export const ProjectController = {
+  async getProjects(_: any, { limit, offset }: any, context: any) {
+    authMiddleware(context);
 
- getProjects(_:any,{limit,offset}:any){
+    return ProjectService.getProjects(limit, offset);
+  },
 
-  return ProjectService.getProjects(limit,offset)
+  async getProject(_: any, { id }: any, context: any) {
+    authMiddleware(context);
 
- },
+    return ProjectService.getProject(id);
+  },
 
- getProject(_:any,{id}:any){
+  async createProject(_: any, args: any, context: any) {
+    const user = authMiddleware(context);
 
-  return ProjectService.getProject(id)
+    args.createdBy = user.userId;
 
- },
-
- createProject(_:any,args:any){
-
-  return ProjectService.createProject(args)
-
- }
-
-}
+    return ProjectService.createProject(args);
+  },
+};

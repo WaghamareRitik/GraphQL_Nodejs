@@ -1,4 +1,5 @@
 import { TaskService } from "../services/task_service";
+import { authMiddleware } from "../middleware/auth_middleware";
 
 export const TaskController = {
   getTasks(_: any, args: any) {
@@ -10,20 +11,26 @@ export const TaskController = {
     );
   },
 
-  createTask(_: any, args: any) {
+  createTask(_: any, args: any, context: any) {
+    const user = authMiddleware(context);
+
     return TaskService.createTask(
       args.title,
       args.description,
       args.projectId,
-      args.assignedTo,
+      args.assignedTo || user.userId,
     );
   },
 
-  updateTaskStatus(_: any, args: any) {
+  updateTaskStatus(_: any, args: any, context: any) {
+    authMiddleware(context);
+
     return TaskService.updateTaskStatus(args.taskId, args.status);
   },
 
-  deleteTask(_: any, { taskId }: any) {
+  deleteTask(_: any, { taskId }: any, context: any) {
+    authMiddleware(context);
+
     return TaskService.deleteTask(taskId);
   },
 };

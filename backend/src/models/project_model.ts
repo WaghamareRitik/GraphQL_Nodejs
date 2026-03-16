@@ -34,4 +34,12 @@ export class ProjectModel {
 
     return result.rows[0];
   }
+  static async findByUser(userId: string) {
+    const result = await pool.query(
+      `SELECT * FROM projects WHERE created_by=$1`,
+      [userId],
+    );
+
+    return result.rows;
+  }
 }
