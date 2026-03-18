@@ -28,7 +28,7 @@ export const SIGNUP = gql`
 
 export const CREATE_PROJECT = gql`
   mutation ($name: String!, $description: String) {
-    createProject(name: $name, description: $description, createdBy: "1") {
+    createProject(name: $name, description: $description) {
       id
       name
       description

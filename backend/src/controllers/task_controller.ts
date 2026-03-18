@@ -1,5 +1,4 @@
 import { TaskService } from "../services/task_service";
-import { authMiddleware } from "../middleware/auth_middleware";
 
 export const TaskController = {
   getTasks(_: any, args: any) {
@@ -12,25 +11,23 @@ export const TaskController = {
   },
 
   createTask(_: any, args: any, context: any) {
-    const user = authMiddleware(context);
+    const user = context.user;
+
+    if (!user) throw new Error("Unauthorized");
 
     return TaskService.createTask(
       args.title,
       args.description,
       args.projectId,
-      args.assignedTo || user.userId,
+      args.assignedTo || user.id,
     );
   },
 
-  updateTaskStatus(_: any, args: any, context: any) {
-    authMiddleware(context);
-
+  updateTaskStatus(_: any, args: any) {
     return TaskService.updateTaskStatus(args.taskId, args.status);
   },
 
-  deleteTask(_: any, { taskId }: any, context: any) {
-    authMiddleware(context);
-
+  deleteTask(_: any, { taskId }: any) {
     return TaskService.deleteTask(taskId);
   },
 };

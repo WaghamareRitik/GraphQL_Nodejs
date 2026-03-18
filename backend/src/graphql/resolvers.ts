@@ -1,38 +1,88 @@
 import { UserController } from "../controllers/user_controller";
 import { ProjectController } from "../controllers/project_controller";
 import { TaskController } from "../controllers/task_controller";
-import { AuthController } from "../controllers/auth_controller";
 
 import { UserModel } from "../models/user_model";
 import { ProjectModel } from "../models/project_model";
-import { TaskModel } from "../models/task_model";
+import { pool } from "../config/db";
+
+// 🔐 Auth Guard
+const requireAuth = (context: any) => {
+  if (!context.user) {
+    throw new Error("Unauthorized");
+  }
+};
 
 export const resolvers = {
   Query: {
-    users: UserController.getUsers,
-    user: UserController.getUser,
-    projects: ProjectController.getProjects,
-    project: ProjectController.getProject,
-    tasks: TaskController.getTasks,
+    users: (_: any, args: any, context: any) => {
+      requireAuth(context);
+      return UserController.getUsers(_, args);
+    },
+
+    user: (_: any, args: any, context: any) => {
+      requireAuth(context);
+      return UserController.getUser(_, args);
+    },
+
+    projects: (_: any, args: any, context: any) => {
+      requireAuth(context);
+      return ProjectController.getProjects(_, args);
+    },
+
+    project: (_: any, args: any, context: any) => {
+      requireAuth(context);
+      return ProjectController.getProject(_, args);
+    },
+
+    tasks: (_: any, args: any, context: any) => {
+      requireAuth(context);
+      return TaskController.getTasks(_, args);
+    },
   },
 
   Mutation: {
-    signup: AuthController.signup,
-    login: AuthController.login,
-    createUser: UserController.createUser,
-    createProject: ProjectController.createProject,
-    createTask: TaskController.createTask,
-    updateTaskStatus: TaskController.updateTaskStatus,
-    deleteTask: TaskController.deleteTask,
-  },
+    createUser: (_: any, args: any, context: any) => {
+      requireAuth(context);
+      return UserController.createUser(_, args);
+    },
 
+    createProject: (_: any, args: any, context: any) => {
+      requireAuth(context);
+      return ProjectController.createProject(_, args, context); // ✅ FIXED
+    },
+
+    createTask: (_: any, args: any, context: any) => {
+      requireAuth(context);
+      return TaskController.createTask(_, args, context); // ✅ FIXED
+    },
+
+    updateTaskStatus: (_: any, args: any, context: any) => {
+      requireAuth(context);
+      return TaskController.updateTaskStatus(_, args);
+    },
+
+    deleteTask: (_: any, args: any, context: any) => {
+      requireAuth(context);
+      return TaskController.deleteTask(_, args);
+    },
+  },
+  // ✅ FIX: Projects & Tasks for user
   User: {
     projects: async (parent: any) => {
-      return ProjectModel.findByUser(parent.id);
+      const result = await pool.query(
+        `SELECT * FROM projects WHERE created_by = $1`,
+        [parent.id],
+      );
+      return result.rows;
     },
 
     assignedTask: async (parent: any) => {
-      return TaskModel.findByUser(parent.id);
+      const result = await pool.query(
+        `SELECT * FROM tasks WHERE assigned_to = $1`,
+        [parent.id],
+      );
+      return result.rows;
     },
   },
 

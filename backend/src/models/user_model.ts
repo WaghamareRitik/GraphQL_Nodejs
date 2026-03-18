@@ -37,4 +37,33 @@ export class UserModel {
 
     return result.rows[0];
   }
+
+  static async findByAuth0Id(auth0_id: string) {
+    const result = await pool.query(`SELECT * FROM users WHERE auth0_id = $1`, [
+      auth0_id,
+    ]);
+
+    return result.rows[0];
+  }
+
+  static async createFromAuth0({
+    auth0_id,
+    email,
+    name,
+  }: {
+    auth0_id: string;
+    email: string;
+    name: string;
+  }) {
+    const result = await pool.query(
+      `
+    INSERT INTO users(auth0_id, email, name)
+    VALUES($1,$2,$3)
+    RETURNING *
+    `,
+      [auth0_id, email, name],
+    );
+
+    return result.rows[0];
+  }
 }

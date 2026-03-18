@@ -1,16 +1,11 @@
 import { UserService } from "../services/user_service";
-import { authMiddleware } from "../middleware/auth_middleware";
 
 export const UserController = {
-  getUsers(_: any, { limit, offset }: any, context: any) {
-    authMiddleware(context);
-
+  getUsers(_: any, { limit, offset }: any) {
     return UserService.getUsers(limit, offset);
   },
 
-  getUser(_: any, { id }: any, context: any) {
-    authMiddleware(context);
-
+  getUser(_: any, { id }: any) {
     return UserService.getUser(id);
   },
 

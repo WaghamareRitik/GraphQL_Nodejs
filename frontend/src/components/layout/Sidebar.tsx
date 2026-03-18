@@ -7,12 +7,12 @@ import {
   Users,
   Menu,
 } from "lucide-react";
-import { useAuth } from "../../context/AuthContext";
 import { useState } from "react";
+import { useAuth0 } from "@auth0/auth0-react";
 
 export default function Sidebar() {
   const location = useLocation();
-  const { logout } = useAuth();
+  const { logout } = useAuth0();
   const [collapsed, setCollapsed] = useState(false);
 
   const menu = [
@@ -44,7 +44,7 @@ export default function Sidebar() {
         collapsed ? "w-20" : "w-64"
       } h-screen bg-gray-900 text-gray-200 flex flex-col transition-all duration-300`}
     >
-      {/* Top Section */}
+      {/* Top */}
       <div className="p-4 flex items-center justify-between border-b border-gray-800">
         {!collapsed && (
           <h1 className="text-lg font-bold text-white">Project Manager</h1>
@@ -58,7 +58,7 @@ export default function Sidebar() {
         </button>
       </div>
 
-      {/* Navigation */}
+      {/* Menu */}
       <nav className="flex-1 p-4 space-y-2">
         {menu.map((item) => {
           const active = location.pathname === item.path;
@@ -71,7 +71,6 @@ export default function Sidebar() {
               ${active ? "bg-blue-600 text-white" : "hover:bg-gray-800"}`}
             >
               {item.icon}
-
               {!collapsed && item.name}
             </Link>
           );
@@ -81,11 +80,16 @@ export default function Sidebar() {
       {/* Logout */}
       <div className="p-4 border-t border-gray-800">
         <button
-          onClick={logout}
+          onClick={() =>
+            logout({
+              logoutParams: {
+                returnTo: window.location.origin,
+              },
+            })
+          }
           className="flex items-center gap-2 w-full px-3 py-2 bg-red-500 hover:bg-red-600 rounded-lg transition"
         >
           <LogOut size={18} />
-
           {!collapsed && "Logout"}
         </button>
       </div>

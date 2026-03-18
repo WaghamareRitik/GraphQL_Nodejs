@@ -1,11 +1,6 @@
 import { gql } from "graphql-tag";
 
 export const typeDefs = gql`
-  type AuthResponse {
-    token: String!
-    user: User
-  }
-
   type User {
     id: ID!
     name: String!
@@ -33,24 +28,16 @@ export const typeDefs = gql`
 
   type Query {
     users(limit: Int, offset: Int): [User]
-
     user(id: ID!): User
-
     projects(limit: Int, offset: Int): [Project]
-
     project(id: ID!): Project
-
     tasks(limit: Int, offset: Int, status: String, projectId: ID): [Task]
   }
 
   type Mutation {
     createUser(name: String!, email: String!): User
 
-    signup(name: String!, email: String!, password: String!): AuthResponse
-
-    login(email: String!, password: String!): AuthResponse
-
-    createProject(name: String!, description: String, createdBy: ID!): Project
+    createProject(name: String!, description: String): Project
 
     createTask(
       title: String!
