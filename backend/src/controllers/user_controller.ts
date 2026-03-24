@@ -1,8 +1,8 @@
 import { UserService } from "../services/user_service";
 
 export const UserController = {
-  getUsers(_: any, { limit, offset }: any) {
-    return UserService.getUsers(limit, offset);
+  getUsers(_: any, { limit, offset, search }: any) {
+    return UserService.getUsers(limit, offset, search);
   },
 
   getUser(_: any, { id }: any) {

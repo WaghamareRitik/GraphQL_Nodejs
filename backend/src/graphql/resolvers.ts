@@ -28,8 +28,7 @@ export const resolvers = {
     me: (_: any, __: any, context: any) => {
       return context.user;
     },
-    users: (_: any, args: any, context: any) => {
-      requireAuth(context);
+    users: (_: any, args: any) => {
       return UserController.getUsers(_, args);
     },
 

@@ -29,7 +29,7 @@ export const typeDefs = gql`
 
   type Query {
     me: User
-    users(limit: Int, offset: Int): [User]
+    users(limit: Int, offset: Int, search: String): [User]
     user(id: ID!): User
     projects(limit: Int, offset: Int): [Project]
     project(id: ID!): Project
@@ -38,18 +38,14 @@ export const typeDefs = gql`
 
   type Mutation {
     createUser(name: String!, email: String!): User
-
     createProject(name: String!, description: String): Project
-
     createTask(
       title: String!
       description: String
       projectId: ID!
       assignedTo: ID
     ): Task
-
     updateTaskStatus(taskId: ID!, status: String!): Task
-
     deleteTask(taskId: ID!): Boolean
   }
 `;

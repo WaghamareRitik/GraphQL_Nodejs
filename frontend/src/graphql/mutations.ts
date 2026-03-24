@@ -1,5 +1,7 @@
 import { gql } from "@apollo/client";
 
+/* ---------------- AUTH ---------------- */
+
 export const LOGIN = gql`
   mutation Login($email: String!, $password: String!) {
     login(email: $email, password: $password) {
@@ -8,6 +10,7 @@ export const LOGIN = gql`
         id
         name
         email
+        role
       }
     }
   }
@@ -21,10 +24,13 @@ export const SIGNUP = gql`
         id
         name
         email
+        role
       }
     }
   }
 `;
+
+/* ---------------- PROJECT ---------------- */
 
 export const CREATE_PROJECT = gql`
   mutation ($name: String!, $description: String) {
@@ -36,20 +42,7 @@ export const CREATE_PROJECT = gql`
   }
 `;
 
-export const DELETE_TASK = gql`
-  mutation ($taskId: ID!) {
-    deleteTask(taskId: $taskId)
-  }
-`;
-
-export const UPDATE_TASK = gql`
-  mutation ($taskId: ID!, $status: String!) {
-    updateTaskStatus(taskId: $taskId, status: $status) {
-      id
-      status
-    }
-  }
-`;
+/* ---------------- TASK ---------------- */
 
 export const CREATE_TASK = gql`
   mutation (
@@ -68,5 +61,20 @@ export const CREATE_TASK = gql`
       title
       status
     }
+  }
+`;
+
+export const UPDATE_TASK = gql`
+  mutation ($taskId: ID!, $status: String!) {
+    updateTaskStatus(taskId: $taskId, status: $status) {
+      id
+      status
+    }
+  }
+`;
+
+export const DELETE_TASK = gql`
+  mutation ($taskId: ID!) {
+    deleteTask(taskId: $taskId)
   }
 `;

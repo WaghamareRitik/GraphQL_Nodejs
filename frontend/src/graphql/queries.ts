@@ -1,5 +1,7 @@
 import { gql } from "@apollo/client";
 
+/* ---------------- TASKS ---------------- */
+
 export const GET_TASKS = gql`
   query {
     tasks(limit: 50, offset: 0) {
@@ -19,6 +21,8 @@ export const GET_TASKS = gql`
   }
 `;
 
+/* ---------------- PROJECTS ---------------- */
+
 export const GET_PROJECTS = gql`
   query {
     projects(limit: 50, offset: 0) {
@@ -28,9 +32,11 @@ export const GET_PROJECTS = gql`
   }
 `;
 
+/* ---------------- USERS (UPDATED WITH SEARCH) ---------------- */
+
 export const GET_USERS = gql`
-  query {
-    users(limit: 50, offset: 0) {
+  query GetUsers($limit: Int!, $offset: Int!, $search: String) {
+    users(limit: $limit, offset: $offset, search: $search) {
       id
       name
       email
@@ -44,6 +50,8 @@ export const GET_USERS = gql`
     }
   }
 `;
+/* ---------------- CURRENT USER ---------------- */
+
 export const GET_ME = gql`
   query {
     me {

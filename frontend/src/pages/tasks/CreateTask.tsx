@@ -3,7 +3,12 @@ import { useQuery, useMutation } from "@apollo/client/react";
 import { CREATE_TASK } from "../../graphql/mutations";
 import { GET_TASKS, GET_PROJECTS, GET_USERS } from "../../graphql/queries";
 
-export default function CreateTask() {
+interface CreateTaskProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export default function CreateTask({ isOpen, onClose }: CreateTaskProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [projectId, setProjectId] = useState("");
@@ -13,10 +18,24 @@ export default function CreateTask() {
   const { data: users } = useQuery(GET_USERS);
 
   const [createTask] = useMutation(CREATE_TASK, {
-    refetchQueries: [GET_TASKS],
+    update(cache, { data }) {
+      const newTask = data?.createTask;
+      if (!newTask) return;
+
+      const existing: any = cache.readQuery({ query: GET_TASKS });
+
+      if (existing) {
+        cache.writeQuery({
+          query: GET_TASKS,
+          data: {
+            tasks: [newTask, ...existing.tasks],
+          },
+        });
+      }
+    },
   });
 
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     await createTask({
@@ -30,61 +49,77 @@ export default function CreateTask() {
 
     setTitle("");
     setDescription("");
+    setProjectId("");
+    setAssignedTo("");
+
+    onClose();
   };
 
+  if (!isOpen) return null;
+
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow mb-6">
-      <h2 className="font-semibold mb-4">Create Task</h2>
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
+      <div className="bg-white w-[400px] p-6 rounded-xl shadow">
+        <h2 className="text-xl font-semibold mb-4">Create Task</h2>
 
-      <input
-        className="border p-2 w-full mb-3 rounded"
-        placeholder="Task Title"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-      />
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+            className="w-full border p-2 rounded"
+            placeholder="Title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            required
+          />
 
-      <input
-        className="border p-2 w-full mb-3 rounded"
-        placeholder="Description"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-      />
+          <textarea
+            className="w-full border p-2 rounded"
+            placeholder="Description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
 
-      {/* Project Dropdown */}
+          <select
+            className="w-full border p-2 rounded"
+            value={projectId}
+            onChange={(e) => setProjectId(e.target.value)}
+            required
+          >
+            <option value="">Select Project</option>
+            {projects?.projects?.map((p: any) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </select>
 
-      <select
-        className="border p-2 w-full mb-3 rounded"
-        value={projectId}
-        onChange={(e) => setProjectId(e.target.value)}
-      >
-        <option>Select Project</option>
+          <select
+            className="w-full border p-2 rounded"
+            value={assignedTo}
+            onChange={(e) => setAssignedTo(e.target.value)}
+            required
+          >
+            <option value="">Assign User</option>
+            {users?.users?.map((u: any) => (
+              <option key={u.id} value={u.id}>
+                {u.name}
+              </option>
+            ))}
+          </select>
 
-        {projects?.projects.map((p: any) => (
-          <option key={p.id} value={p.id}>
-            {p.name}
-          </option>
-        ))}
-      </select>
-
-      {/* User Dropdown */}
-
-      <select
-        className="border p-2 w-full mb-4 rounded"
-        value={assignedTo}
-        onChange={(e) => setAssignedTo(e.target.value)}
-      >
-        <option>Assign User</option>
-
-        {users?.users.map((u: any) => (
-          <option key={u.id} value={u.id}>
-            {u.name}
-          </option>
-        ))}
-      </select>
-
-      <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-        Create Task
-      </button>
-    </form>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 border p-2 rounded"
+            >
+              Cancel
+            </button>
+            <button className="flex-1 bg-blue-600 text-white p-2 rounded">
+              Create
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 }

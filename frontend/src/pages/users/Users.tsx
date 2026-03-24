@@ -1,17 +1,46 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@apollo/client/react";
 import { GET_USERS } from "../../graphql/queries";
 import { SIGNUP } from "../../graphql/mutations";
 
 export default function Users() {
-  const { data, loading, error, refetch } = useQuery(GET_USERS);
+  /* ---------------- PAGINATION ---------------- */
+  const [page, setPage] = useState(1);
+  const limit = 5;
+  const offset = (page - 1) * limit;
+
+  /* ---------------- SEARCH ---------------- */
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  /* ---------------- QUERY ---------------- */
+  const { data, loading, error, refetch } = useQuery(GET_USERS, {
+    variables: { limit, offset },
+  });
 
   const [createUser] = useMutation(SIGNUP);
 
-  const users = data?.users || [];
+  let users = data?.users || [];
 
+  /* ---------------- FILTER (FRONTEND SEARCH) ---------------- */
+  if (debouncedSearch) {
+    users = users.filter(
+      (u: any) =>
+        u.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+        u.email.toLowerCase().includes(debouncedSearch.toLowerCase()),
+    );
+  }
+
+  /* ---------------- CREATE USER ---------------- */
   const [open, setOpen] = useState(false);
-
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -29,7 +58,6 @@ export default function Users() {
       setPassword("");
 
       setOpen(false);
-
       refetch();
     } catch (err) {
       console.error("User creation failed", err);
@@ -37,13 +65,11 @@ export default function Users() {
   };
 
   if (loading) return <p className="p-6">Loading users...</p>;
-
   if (error) return <p className="p-6 text-red-500">Error loading users</p>;
 
   return (
     <div className="p-6">
-      {/* Header */}
-
+      {/* HEADER */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Users</h1>
 
@@ -55,8 +81,16 @@ export default function Users() {
         </button>
       </div>
 
-      {/* Users Table */}
+      {/* 🔍 SEARCH */}
+      <input
+        type="text"
+        placeholder="Search users..."
+        className="mb-4 w-full border p-2 rounded"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      />
 
+      {/* TABLE */}
       <div className="bg-white rounded-xl shadow overflow-hidden">
         <table className="w-full">
           <thead className="bg-gray-100">
@@ -72,11 +106,8 @@ export default function Users() {
             {users.map((user: any) => (
               <tr key={user.id} className="border-t">
                 <td className="p-4 font-medium">{user.name}</td>
-
                 <td className="p-4 text-gray-600">{user.email}</td>
-
                 <td className="p-4">{user.projects?.length || 0}</td>
-
                 <td className="p-4">{user.assignedTask?.length || 0}</td>
               </tr>
             ))}
@@ -84,8 +115,28 @@ export default function Users() {
         </table>
       </div>
 
-      {/* CREATE USER MODAL */}
+      {/* 📄 PAGINATION */}
+      <div className="flex justify-between items-center mt-4">
+        <button
+          disabled={page === 1}
+          onClick={() => setPage(page - 1)}
+          className="px-4 py-2 border rounded disabled:opacity-50"
+        >
+          Previous
+        </button>
 
+        <span className="text-sm">Page {page}</span>
+
+        <button
+          disabled={users.length < limit}
+          onClick={() => setPage(page + 1)}
+          className="px-4 py-2 border rounded disabled:opacity-50"
+        >
+          Next
+        </button>
+      </div>
+
+      {/* CREATE USER MODAL */}
       {open && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
           <div className="bg-white w-[400px] p-6 rounded-xl shadow">

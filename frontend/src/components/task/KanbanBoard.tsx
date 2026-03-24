@@ -20,26 +20,55 @@ interface Task {
 const columns = ["TODO", "IN_PROGRESS", "DONE"];
 
 export default function KanbanBoard({ tasks }: { tasks: Task[] }) {
-  const [updateTask] = useMutation(UPDATE_TASK, {
-    refetchQueries: [GET_TASKS],
-  });
+  const [updateTask] = useMutation(UPDATE_TASK);
 
-  // Group tasks by status
   const groupedTasks: any = columns.reduce((acc: any, column) => {
     acc[column] = tasks.filter((task) => task.status === column);
     return acc;
   }, {});
 
-  const onDragEnd = async (result: any) => {
+  const onDragEnd = (result: any) => {
     if (!result.destination) return;
 
     const taskId = result.draggableId;
     const newStatus = result.destination.droppableId;
 
-    await updateTask({
+    if (result.source.droppableId === newStatus) return;
+
+    updateTask({
       variables: {
         taskId,
         status: newStatus,
+      },
+
+      optimisticResponse: {
+        updateTaskStatus: {
+          id: taskId,
+          status: newStatus,
+          __typename: "Task",
+        },
+      },
+
+      update: (cache, { data }) => {
+        const updatedTask = data?.updateTaskStatus;
+        if (!updatedTask) return;
+
+        const existing: any = cache.readQuery({
+          query: GET_TASKS,
+        });
+
+        if (!existing) return;
+
+        const newTasks = existing.tasks.map((task: Task) =>
+          task.id === taskId ? { ...task, status: updatedTask.status } : task,
+        );
+
+        cache.writeQuery({
+          query: GET_TASKS,
+          data: {
+            tasks: newTasks,
+          },
+        });
       },
     });
   };
@@ -68,17 +97,11 @@ export default function KanbanBoard({ tasks }: { tasks: Task[] }) {
                         {...provided.dragHandleProps}
                         className="bg-white p-4 mb-3 rounded-lg shadow hover:shadow-md transition"
                       >
-                        {/* Task Title */}
-
                         <h4 className="font-semibold">{task.title}</h4>
-
-                        {/* Project Name */}
 
                         <p className="text-xs text-gray-500 mt-1">
                           Project: {task.project?.name || "Unknown"}
                         </p>
-
-                        {/* Assigned User */}
 
                         <p className="text-xs text-gray-500">
                           Assigned: {task.assignedTo?.name || "Unassigned"}
