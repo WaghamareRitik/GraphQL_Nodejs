@@ -22,6 +22,7 @@ export async function initGraphQL(app: express.Application) {
         console.log("AUTH HEADER:", req.headers.authorization);
 
         const authUser = (req as any).auth;
+        console.log("AUTH USER", authUser);
 
         // ❌ No token
         if (!authUser) {

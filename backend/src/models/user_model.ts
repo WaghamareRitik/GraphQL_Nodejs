@@ -57,8 +57,8 @@ export class UserModel {
   }) {
     const result = await pool.query(
       `
-    INSERT INTO users(auth0_id, email, name)
-    VALUES($1,$2,$3)
+    INSERT INTO users(auth0_id, email, name,role)
+    VALUES($1,$2,$3,'user')
     RETURNING *
     `,
       [auth0_id, email, name],

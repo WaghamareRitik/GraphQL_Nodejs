@@ -5,6 +5,7 @@ export const typeDefs = gql`
     id: ID!
     name: String!
     email: String!
+    role: String!
     projects: [Project]
     assignedTask: [Task]
   }
@@ -27,6 +28,7 @@ export const typeDefs = gql`
   }
 
   type Query {
+    me: User
     users(limit: Int, offset: Int): [User]
     user(id: ID!): User
     projects(limit: Int, offset: Int): [Project]

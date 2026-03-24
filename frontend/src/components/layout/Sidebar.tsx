@@ -9,17 +9,20 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
+import { useMe } from "../../hooks/useMe";
 
 export default function Sidebar() {
   const location = useLocation();
   const { logout } = useAuth0();
   const [collapsed, setCollapsed] = useState(false);
+  const { user } = useMe();
 
   const menu = [
     {
       name: "Dashboard",
       path: "/dashboard",
       icon: <LayoutDashboard size={20} />,
+      adminOnly: true,
     },
     {
       name: "Projects",
@@ -35,6 +38,7 @@ export default function Sidebar() {
       name: "Users",
       path: "/users",
       icon: <Users size={20} />,
+      adminOnly: true,
     },
   ];
 
@@ -60,23 +64,29 @@ export default function Sidebar() {
 
       {/* Menu */}
       <nav className="flex-1 p-4 space-y-2">
-        {menu.map((item) => {
-          const active = location.pathname === item.path;
+        {menu
+          .filter((item) => {
+            if (item.adminOnly && user?.role !== "admin") {
+              return false;
+            }
+            return true;
+          })
+          .map((item) => {
+            const active = location.pathname === item.path;
 
-          return (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={`flex items-center gap-3 px-3 py-2 rounded-lg transition
-              ${active ? "bg-blue-600 text-white" : "hover:bg-gray-800"}`}
-            >
-              {item.icon}
-              {!collapsed && item.name}
-            </Link>
-          );
-        })}
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`flex items-center gap-3 px-3 py-2 rounded-lg transition
+          ${active ? "bg-blue-600 text-white" : "hover:bg-gray-800"}`}
+              >
+                {item.icon}
+                {!collapsed && item.name}
+              </Link>
+            );
+          })}
       </nav>
-
       {/* Logout */}
       <div className="p-4 border-t border-gray-800">
         <button

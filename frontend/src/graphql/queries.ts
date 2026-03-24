@@ -34,12 +34,23 @@ export const GET_USERS = gql`
       id
       name
       email
+      role
       projects {
         id
       }
       assignedTask {
         id
       }
+    }
+  }
+`;
+export const GET_ME = gql`
+  query {
+    me {
+      id
+      name
+      email
+      role
     }
   }
 `;

@@ -24,7 +24,7 @@ export default function App() {
       <Route
         path="/dashboard"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute adminOnly={true}>
             <Layout>
               <Dashboard />
             </Layout>

@@ -1,19 +1,23 @@
 import { useAuth0 } from "@auth0/auth0-react";
+import { useMe } from "../hooks/useMe";
+import { Navigate } from "react-router-dom";
 
-export default function ProtectedRoute({ children }: any) {
+export default function ProtectedRoute({ children, adminOnly = false }: any) {
   const { isAuthenticated, isLoading, loginWithRedirect } = useAuth0();
+  const { user, loading } = useMe();
 
-  // While Auth0 is checking session
-  if (isLoading) {
+  if (isLoading || loading) {
     return <p className="p-6">Loading...</p>;
   }
 
-  // If not logged in → redirect to Auth0
   if (!isAuthenticated) {
     loginWithRedirect();
     return null;
   }
 
-  // If logged in → allow access
+  if (adminOnly && user?.role !== "admin") {
+    return <Navigate to="/projects" replace />;
+  }
+
   return children;
 }

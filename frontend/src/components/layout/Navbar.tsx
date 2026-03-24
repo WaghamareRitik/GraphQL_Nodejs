@@ -1,12 +1,24 @@
 import { useLocation, Link } from "react-router-dom";
-import { useAuth0 } from "@auth0/auth0-react";
 import { User } from "lucide-react";
+import { useMe } from "../../hooks/useMe";
 
 export default function Navbar() {
   const location = useLocation();
-  const { user } = useAuth0();
+  const { user, loading } = useMe();
 
   const pathnames = location.pathname.split("/").filter((x) => x);
+
+  // 🔥 FIX: derive clean name
+  const displayName = (() => {
+    if (!user) return "User";
+
+    // If name is email → convert to username
+    if (user.name && user.name.includes("@")) {
+      return user.name.split("@")[0]; // kaka@gmail.com → kaka
+    }
+
+    return user.name || user.email || "User";
+  })();
 
   return (
     <div className="bg-white border-b px-6 py-4 flex justify-between items-center">
@@ -36,20 +48,15 @@ export default function Navbar() {
       <div className="flex items-center gap-3">
         <div className="text-right">
           <p className="text-sm text-gray-500">Welcome</p>
-          <p className="font-semibold text-gray-800">{user?.name || "User"}</p>
+
+          <p className="font-semibold text-gray-800">
+            {loading ? "Loading..." : displayName}
+          </p>
         </div>
 
-        {user?.picture ? (
-          <img
-            src={user.picture}
-            alt="profile"
-            className="w-9 h-9 rounded-full border"
-          />
-        ) : (
-          <div className="bg-gray-200 p-2 rounded-full">
-            <User size={18} />
-          </div>
-        )}
+        <div className="bg-gray-200 p-2 rounded-full">
+          <User size={18} />
+        </div>
       </div>
     </div>
   );

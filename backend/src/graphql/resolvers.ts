@@ -13,8 +13,21 @@ const requireAuth = (context: any) => {
   }
 };
 
+const requireAdmin = (context: any) => {
+  if (!context.user) {
+    throw new Error("Unauthorized");
+  }
+
+  if (context.user.role !== "admin") {
+    throw new Error("Access denied: Admins only");
+  }
+};
+
 export const resolvers = {
   Query: {
+    me: (_: any, __: any, context: any) => {
+      return context.user;
+    },
     users: (_: any, args: any, context: any) => {
       requireAuth(context);
       return UserController.getUsers(_, args);
@@ -67,7 +80,7 @@ export const resolvers = {
       return TaskController.deleteTask(_, args);
     },
   },
-  // ✅ FIX: Projects & Tasks for user
+
   User: {
     projects: async (parent: any) => {
       const result = await pool.query(
