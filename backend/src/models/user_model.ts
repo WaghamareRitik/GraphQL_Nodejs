@@ -12,23 +12,40 @@ export class UserModel {
     return result.rows[0];
   }
 
-  static async findAll(limit: number, offset: number, search?: string) {
+  static async findAll(
+    limit: number,
+    offset: number,
+    search?: string,
+    sortBy: string = "created_at",
+    order: string = "desc",
+  ) {
     let query = `SELECT * FROM users WHERE 1=1`;
     const values: any[] = [];
 
+    // 🔍 SEARCH
     if (search) {
       values.push(`%${search}%`);
       query += ` AND (name ILIKE $${values.length} OR email ILIKE $${values.length})`;
     }
 
+    // ✅ VALID SORT FIELDS (IMPORTANT for security)
+    const allowedSortFields = ["created_at", "name", "email"];
+
+    if (!allowedSortFields.includes(sortBy)) {
+      sortBy = "created_at";
+    }
+
+    const sortOrder = order.toLowerCase() === "asc" ? "ASC" : "DESC";
+
+    // 📌 ADD LIMIT OFFSET
     values.push(limit);
     values.push(offset);
 
     query += `
-      ORDER BY created_at DESC
-      LIMIT $${values.length - 1}
-      OFFSET $${values.length}
-    `;
+    ORDER BY ${sortBy} ${sortOrder}
+    LIMIT $${values.length - 1}
+    OFFSET $${values.length}
+  `;
 
     const result = await pool.query(query, values);
     return result.rows;

@@ -15,7 +15,14 @@ export default function CreateTask({ isOpen, onClose }: CreateTaskProps) {
   const [assignedTo, setAssignedTo] = useState("");
 
   const { data: projects } = useQuery(GET_PROJECTS);
-  const { data: users } = useQuery(GET_USERS);
+
+  const { data: users } = useQuery(GET_USERS, {
+    variables: {
+      limit: 50,
+      offset: 0,
+      search: "",
+    },
+  });
 
   const [createTask] = useMutation(CREATE_TASK, {
     update(cache, { data }) {
@@ -47,6 +54,7 @@ export default function CreateTask({ isOpen, onClose }: CreateTaskProps) {
       },
     });
 
+    // reset
     setTitle("");
     setDescription("");
     setProjectId("");
@@ -78,6 +86,7 @@ export default function CreateTask({ isOpen, onClose }: CreateTaskProps) {
             onChange={(e) => setDescription(e.target.value)}
           />
 
+          {/* Projects */}
           <select
             className="w-full border p-2 rounded"
             value={projectId}
@@ -92,6 +101,7 @@ export default function CreateTask({ isOpen, onClose }: CreateTaskProps) {
             ))}
           </select>
 
+          {/* Users */}
           <select
             className="w-full border p-2 rounded"
             value={assignedTo}

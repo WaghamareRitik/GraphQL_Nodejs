@@ -29,7 +29,13 @@ export const typeDefs = gql`
 
   type Query {
     me: User
-    users(limit: Int, offset: Int, search: String): [User]
+    users(
+      limit: Int
+      offset: Int
+      search: String
+      sortBy: String
+      order: String
+    ): [User]
     user(id: ID!): User
     projects(limit: Int, offset: Int): [Project]
     project(id: ID!): Project

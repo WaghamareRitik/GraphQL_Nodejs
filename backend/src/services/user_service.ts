@@ -11,9 +11,14 @@ export class UserService {
     return UserModel.create(data.name, data.email, data.password);
   }
 
-  // ✅ ADD search
-  static async getUsers(limit: number, offset: number, search?: string) {
-    return UserModel.findAll(limit, offset, search);
+  static async getUsers(
+    limit: number,
+    offset: number,
+    search?: string,
+    sortBy?: string,
+    order?: string,
+  ) {
+    return UserModel.findAll(limit, offset, search, sortBy, order);
   }
 
   static async getUser(id: string) {

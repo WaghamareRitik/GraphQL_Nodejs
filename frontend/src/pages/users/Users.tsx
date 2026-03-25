@@ -16,28 +16,34 @@ export default function Users() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(search);
+      setPage(1);
     }, 500);
 
     return () => clearTimeout(timer);
   }, [search]);
 
+  /* ---------------- SORT ---------------- */
+  const [sortBy, setSortBy] = useState("created_at");
+  const [order, setOrder] = useState("desc");
+
   /* ---------------- QUERY ---------------- */
-  const { data, loading, error, refetch } = useQuery(GET_USERS, {
-    variables: { limit, offset },
+  const { data, loading, error, refetch, networkStatus } = useQuery(GET_USERS, {
+    variables: {
+      limit,
+      offset,
+      search: debouncedSearch,
+      sortBy,
+      order,
+    },
+    notifyOnNetworkStatusChange: true,
+    fetchPolicy: "cache-and-network",
   });
+
+  const isFetching = networkStatus === 4; // refetching
 
   const [createUser] = useMutation(SIGNUP);
 
-  let users = data?.users || [];
-
-  /* ---------------- FILTER (FRONTEND SEARCH) ---------------- */
-  if (debouncedSearch) {
-    users = users.filter(
-      (u: any) =>
-        u.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-        u.email.toLowerCase().includes(debouncedSearch.toLowerCase()),
-    );
-  }
+  const users = data?.users || [];
 
   /* ---------------- CREATE USER ---------------- */
   const [open, setOpen] = useState(false);
@@ -64,7 +70,6 @@ export default function Users() {
     }
   };
 
-  if (loading) return <p className="p-6">Loading users...</p>;
   if (error) return <p className="p-6 text-red-500">Error loading users</p>;
 
   return (
@@ -81,14 +86,35 @@ export default function Users() {
         </button>
       </div>
 
-      {/* 🔍 SEARCH */}
-      <input
-        type="text"
-        placeholder="Search users..."
-        className="mb-4 w-full border p-2 rounded"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-      />
+      {/* SEARCH + FILTER */}
+      <div className="flex gap-4 mb-4">
+        <input
+          type="text"
+          placeholder="Search users..."
+          className="w-full border p-2 rounded"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+
+        <select
+          className="border p-2 rounded"
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value)}
+        >
+          <option value="created_at">Created</option>
+          <option value="name">Name</option>
+          <option value="email">Email</option>
+        </select>
+
+        <select
+          className="border p-2 rounded"
+          value={order}
+          onChange={(e) => setOrder(e.target.value)}
+        >
+          <option value="desc">Desc</option>
+          <option value="asc">Asc</option>
+        </select>
+      </div>
 
       {/* TABLE */}
       <div className="bg-white rounded-xl shadow overflow-hidden">
@@ -103,19 +129,48 @@ export default function Users() {
           </thead>
 
           <tbody>
-            {users.map((user: any) => (
-              <tr key={user.id} className="border-t">
-                <td className="p-4 font-medium">{user.name}</td>
-                <td className="p-4 text-gray-600">{user.email}</td>
-                <td className="p-4">{user.projects?.length || 0}</td>
-                <td className="p-4">{user.assignedTask?.length || 0}</td>
+            {/* Loading only inside table */}
+            {loading && users.length === 0 && (
+              <tr>
+                <td colSpan={4} className="p-4 text-center text-gray-500">
+                  Loading users...
+                </td>
               </tr>
-            ))}
+            )}
+
+            {isFetching && (
+              <tr>
+                <td colSpan={4} className="p-4 text-center text-gray-500">
+                  <div className="flex justify-center items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                    Updating...
+                  </div>
+                </td>
+              </tr>
+            )}
+
+            {!loading && users.length === 0 && (
+              <tr>
+                <td colSpan={4} className="p-4 text-center text-gray-500">
+                  No users found
+                </td>
+              </tr>
+            )}
+
+            {!loading &&
+              users.map((user: any) => (
+                <tr key={user.id} className="border-t">
+                  <td className="p-4 font-medium">{user.name}</td>
+                  <td className="p-4 text-gray-600">{user.email}</td>
+                  <td className="p-4">{user.projects?.length || 0}</td>
+                  <td className="p-4">{user.assignedTask?.length || 0}</td>
+                </tr>
+              ))}
           </tbody>
         </table>
       </div>
 
-      {/* 📄 PAGINATION */}
+      {/* PAGINATION */}
       <div className="flex justify-between items-center mt-4">
         <button
           disabled={page === 1}
@@ -177,7 +232,7 @@ export default function Users() {
                   Cancel
                 </button>
 
-                <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                <button className="bg-blue-600 text-white px-4 py-2 rounded">
                   Create
                 </button>
               </div>

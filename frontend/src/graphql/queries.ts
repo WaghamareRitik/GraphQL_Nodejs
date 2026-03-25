@@ -33,10 +33,21 @@ export const GET_PROJECTS = gql`
 `;
 
 /* ---------------- USERS (UPDATED WITH SEARCH) ---------------- */
-
 export const GET_USERS = gql`
-  query GetUsers($limit: Int!, $offset: Int!, $search: String) {
-    users(limit: $limit, offset: $offset, search: $search) {
+  query GetUsers(
+    $limit: Int!
+    $offset: Int!
+    $search: String
+    $sortBy: String
+    $order: String
+  ) {
+    users(
+      limit: $limit
+      offset: $offset
+      search: $search
+      sortBy: $sortBy
+      order: $order
+    ) {
       id
       name
       email
